@@ -12,7 +12,6 @@ export function Ficha({animal, meAdoptaronActualizame}){
     //animalClickeado.innerHTML = "Adoptado :)";
   }
 
-  console.log("Devuelve el html del animal " + animal.id + "con adoptado " + animal.adoptado);
   return (
     <div className="ficha" id={`animal${animal.id}`}>
         <div id={`imagen${animal.id}`} style={{backgroundImage: `url(${animal.imagen})`}} className="imagenMascota">
