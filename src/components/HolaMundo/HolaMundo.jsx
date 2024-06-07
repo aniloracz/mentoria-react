@@ -40,25 +40,29 @@ function HolaMundo() {
   // Se arregló haciendo la funcion asyncrona, asi espera a que la respuesta llegue y luego la carga
   // Antes solo cargaba la ultima, porque mientras se enviaba un setter, llegaba otro
 
-  useEffect(() => {
-    console.log("Entra al UseEffect");
-    const llamarPokemon = async () => {
-        try {
-          const promises = []; // Se crea un arreglo donde almacenar las peticiones
-          for (let i = 1; i <= 21; i++) {
-            console.log("Va a llamar al pokémon", i);
-            promises.push(axios.get(`https://pokeapi.co/api/v2/pokemon/${i}`)); // Se agrega la peticion
-          }
-          const results = await Promise.all(promises); // Se llama la peticion
-          const pokemons = results.map(res => res.data); // Se retornan los resultados dentro de un array
-          console.log("Todos los pokémones llegaron");
-          setcoleccionPokemon(pokemons); // Se vuelve a settear la colección.
-        } catch (error) {
-          console.error("Error al buscar el pokemon", error);
+
+  const repartirCartasPokemon = () => {
+    const traerPokemones = async () => {
+      try {
+        const pokemonesRecibidos = []; // Se crea un arreglo donde almacenar las peticiones
+        for (let i = 1; i <= 10; i++) {
+          let idPokemonAleatorio = Math.round(Math.random() * (1015 - 1) + 1)
+          console.log("Va a llamar al pokémon", idPokemonAleatorio);
+          let pokemonAux = axios.get(`https://pokeapi.co/api/v2/pokemon/${idPokemonAleatorio}`);
+          console.log(pokemonAux);
+          pokemonesRecibidos.push(pokemonAux); // Se agrega la peticion
+          console.log("Llamó al pokémon", idPokemonAleatorio)
         }
+        const results = await Promise.all(pokemonesRecibidos); // Se llama la peticion
+        const pokemons = results.map(res => res.data); // Se retornan los resultados dentro de un array
+        console.log("Todos los pokémones llegaron");
+        setcoleccionPokemon(pokemons); // Se vuelve a settear la colección.
+      } catch (error) {
+        console.error("Error al buscar el pokemon", error);
+      }
+}
+traerPokemones();
   }
-    llamarPokemon();
-  }, []);
 
   const meAdoptaronActualizame = (idAnimalAdoptado) => {
     let nuevaListaAnimales = [...misAnimales];
@@ -85,6 +89,7 @@ function HolaMundo() {
       
       <div className="flex-container main">
         <main className="flex">
+          <button onClick={repartirCartasPokemon}>Repartir Cartas Pokemon</button>
           {coleccionPokemon.map((pokemon, id) => {
             return (<FichaPokemon pokemon={pokemon} key={id}/>)
           })}
