@@ -92,12 +92,23 @@ traerPokemones();
   
   
   */
-  const jugarCarta = (unaCarta) => {
-    console.log("Jugo Carta" + unaCarta.id);
-    // Sacar carta de lista de jugador y agregarla a la lista cartas tablero
-    const cartasTableroAux = [...cartasTablero];
-    cartasTableroAux.push(unaCarta);
-    setCartasTablero([...cartasTableroAux]);
+  const enfrentarCartas = () => {
+    const cartaGanadora = (cartasTablero[0].weight>cartasTablero[1].weight)? cartasTablero[0]: cartasTablero[1]; ;
+    console.log("Carta Ganadora", cartaGanadora);
+  }
+  const jugarCarta = (unaCartaPokemon) => {
+    console.log("Jugo Carta" + unaCartaPokemon.id);
+    if(!cartasTablero.includes(unaCartaPokemon) && cartasTablero.length < 3){
+      // Sacar carta de lista de jugador y agregarla a la lista cartas tablero
+      const cartasTableroAux = [...cartasTablero];
+      cartasTableroAux.push(unaCartaPokemon);
+      setCartasTablero([...cartasTableroAux]);
+      if(cartasTablero.length===2){
+        enfrentarCartas();
+      }
+    }else{
+      console.log("Carta ya jugada");
+    }
   }
   return (
     <div id="main">
@@ -109,13 +120,11 @@ traerPokemones();
           <div style={{border: "1px solid red", width: "100%", display: "flex", gap: "1rem"}}>
             <h3>Cartas Jugador 2</h3>
             {cartasJugadorDos.map((pokemon, id) => {
-              return (<CartaPokemon pokemon={pokemon} key={`j2${id}`} onClick={() => {
-                jugarCarta(pokemon)
-              }}/>)
+              return (<CartaPokemon pokemon={pokemon} key={`j2${id}`} jugarCarta={jugarCarta}/>)
             })}
           </div>
 
-          <div style={{height: "300px",border: "1px solid black", width: "100%"}}>
+          <div style={{height: "300px",border: "1px solid black", width: "100%", display: "flex",flexDirection: "row"}}>
             <h3>Tablero de juego</h3>
             {cartasTablero.map((pokemon, id) => {
               return (<CartaPokemon pokemon={pokemon} key={`t${id}`} />)

@@ -4,7 +4,7 @@ export function CartaPokemon ({pokemon, jugarCarta}){
     //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png
     return (
         <div className="card" id={`p${pokemon.id}`} onClick={() => {
-            (!jugarCarta) ? "" : jugarCarta(pokemon)
+            if(jugarCarta) { jugarCarta(pokemon) }
         }}>
                 <div className="card-image">
                     <img src={pokemon.sprites.other[`official-artwork`].front_default} alt={`Foto de ${pokemon.name}`} />
