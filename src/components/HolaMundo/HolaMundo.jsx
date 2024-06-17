@@ -1,6 +1,6 @@
 import { Header } from "../Header/Header";
 import { Ficha } from "../Ficha/Ficha";
-import {FichaPokemon} from "../FichaPokemon/FichaPokemon";
+import {CartaPokemon} from "../CartaPokemon/CartaPokemon";
 import { useEffect, useState } from "react";
 import axios from "axios";
 function HolaMundo() {
@@ -32,7 +32,9 @@ function HolaMundo() {
       imagen: "https://definicion.de/wp-content/uploads/2013/03/perro-1.jpg",
     },
   ]);
-  const [coleccionPokemon, setcoleccionPokemon] = useState([]);
+  const [cartasJugadorUno, setcartasJugadorUno] = useState([]);
+  const [cartasJugadorDos, setCartasJugadorDos] = useState([]);
+  const [cartasTablero, setCartasTablero] = useState([]);
   // TODO: DONE, FUNCIONANDO 
   // Arreglado por LUIS.
   // Me di el derecho de arreglar la chamburreada.
@@ -45,7 +47,8 @@ function HolaMundo() {
     const traerPokemones = async () => {
       try {
         const pokemonesRecibidos = []; // Se crea un arreglo donde almacenar las peticiones
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 3; i++) {
+          
           let idPokemonAleatorio = Math.round(Math.random() * (1015 - 1) + 1)
           console.log("Va a llamar al pokémon", idPokemonAleatorio);
           let pokemonAux = axios.get(`https://pokeapi.co/api/v2/pokemon/${idPokemonAleatorio}`);
@@ -56,7 +59,12 @@ function HolaMundo() {
         const results = await Promise.all(pokemonesRecibidos); // Se llama la peticion
         const pokemons = results.map(res => res.data); // Se retornan los resultados dentro de un array
         console.log("Todos los pokémones llegaron");
-        setcoleccionPokemon(pokemons); // Se vuelve a settear la colección.
+        if (cartasJugadorUno.length > 0) {
+          setCartasJugadorDos(pokemons);
+        } else {
+          setcartasJugadorUno(pokemons); // Se vuelve a settear la colección.
+        }
+        
       } catch (error) {
         console.error("Error al buscar el pokemon", error);
       }
@@ -73,6 +81,7 @@ traerPokemones();
     alert(`Le cambiamos el estado adoptado al animal ${idAnimalAdoptado}`);
   };
   /* 
+
   {misAnimales.map((animal, index) => (
         <Ficha
           key={index}
@@ -83,16 +92,43 @@ traerPokemones();
   
   
   */
+  const jugarCarta = (unaCarta) => {
+    console.log("Jugo Carta" + unaCarta.id);
+    // Sacar carta de lista de jugador y agregarla a la lista cartas tablero
+    const cartasTableroAux = [...cartasTablero];
+    cartasTableroAux.push(unaCarta);
+    setCartasTablero([...cartasTableroAux]);
+  }
   return (
     <div id="main">
-      <Header />
       
       <div className="flex-container main">
         <main className="flex">
           <button onClick={repartirCartasPokemon}>Repartir Cartas Pokemon</button>
-          {coleccionPokemon.map((pokemon, id) => {
-            return (<FichaPokemon pokemon={pokemon} key={id}/>)
-          })}
+
+          <div style={{border: "1px solid red", width: "100%", display: "flex", gap: "1rem"}}>
+            <h3>Cartas Jugador 2</h3>
+            {cartasJugadorDos.map((pokemon, id) => {
+              return (<CartaPokemon pokemon={pokemon} key={`j2${id}`} onClick={() => {
+                jugarCarta(pokemon)
+              }}/>)
+            })}
+          </div>
+
+          <div style={{height: "300px",border: "1px solid black", width: "100%"}}>
+            <h3>Tablero de juego</h3>
+            {cartasTablero.map((pokemon, id) => {
+              return (<CartaPokemon pokemon={pokemon} key={`t${id}`} />)
+            })}
+          </div>
+
+          <div style={{border: "1px solid grey", width: "100%", display: "flex", gap: "1rem"}}>
+            <h3>Cartas Jugador 1</h3>
+            {cartasJugadorUno.map((pokemon, id) => {
+              return (<CartaPokemon pokemon={pokemon} key={`j1${id}`} jugarCarta={jugarCarta}/>)
+            })}
+          </div>
+          
         </main>
       </div>
       
