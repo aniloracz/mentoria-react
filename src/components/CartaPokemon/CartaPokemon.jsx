@@ -1,10 +1,12 @@
 
 import '../CartaPokemon/CartaPokemon.css'
-export function CartaPokemon ({pokemon, jugarCarta}){
+export function CartaPokemon ({pokemon, jugarCarta, jugador}){
     //https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png
     return (
         <div className="card" id={`p${pokemon.id}`} onClick={() => {
-            if(jugarCarta) { jugarCarta(pokemon) }
+            if(jugarCarta) { 
+                jugarCarta(jugador,pokemon)
+            }
         }}>
                 <div className="card-image">
                     <img src={pokemon.sprites.other[`official-artwork`].front_default} alt={`Foto de ${pokemon.name}`} />
