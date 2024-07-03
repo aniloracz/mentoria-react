@@ -75,19 +75,17 @@
     color: white;
 }
 
-.flex-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    position: relative;
-}
+
 .flex {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5rem;
 }
 main {
     margin-top: 80px;
     flex-wrap: wrap;
-    gap: 1rem;
+    
 }

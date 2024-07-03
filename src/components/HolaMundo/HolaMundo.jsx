@@ -3,47 +3,36 @@ import { Ficha } from "../Ficha/Ficha";
 import { CartaPokemon } from "../CartaPokemon/CartaPokemon";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import io from "socket.io-client"
 function HolaMundo() {
-  const [misAnimales, setMisAnimales] = useState([
-    {
-      id: 1,
-      tipo: "Gato",
-      nombre: "Miguel",
-      virtudes: ["Simpático", "Amigable"],
-      adoptado: false,
-      imagen:
-        "https://cdn.pixabay.com/photo/2014/11/30/14/11/cat-551554_640.jpg",
-    },
-    {
-      id: 2,
-      tipo: "Gato",
-      nombre: "Pepe",
-      virtudes: ["Simpático", "Amigable"],
-      adoptado: false,
-      imagen:
-        "https://nupec.com/wp-content/uploads/2021/02/Captura-de-pantalla-2021-02-08-a-las-13.59.48.png",
-    },
-    {
-      id: 3,
-      tipo: "Perro",
-      nombre: "Patán",
-      virtudes: ["Simpático", "Amigable"],
-      adoptado: false,
-      imagen: "https://definicion.de/wp-content/uploads/2013/03/perro-1.jpg",
-    },
-  ]);
+  const [misAnimales, setMisAnimales] = useState();
   const [cartasJugadorUno, setcartasJugadorUno] = useState([]);
   const [cartasJugadorDos, setCartasJugadorDos] = useState([]);
   const [cartasTablero, setCartasTablero] = useState([]);
   const [turno, setTurno] = useState("Jugador1");
   const [puntosJugadorUno, setPuntosJugadorUno] = useState(0);
   const [puntosJugadorDos, setPuntosJugadorDos] = useState(0);
-  // TODO: DONE, FUNCIONANDO
-  // Arreglado por LUIS.
-  // Me di el derecho de arreglar la chamburreada.
-  // El for es unicamente para no hacer una llamada a la api manualmente 10 veces.
-  // Se arregló haciendo la funcion asyncrona, asi espera a que la respuesta llegue y luego la carga
-  // Antes solo cargaba la ultima, porque mientras se enviaba un setter, llegaba otro
+  const [soyJugador, setSoyJugador] = useState({
+    nombre: "",
+    id: 1
+  })
+  const socket = io("http://localhost:5000/");
+
+  useEffect(() => {
+    console.log("Entro al useeffecct")
+    socket.on("asignaJugador", (idJugador) => {
+      const nombre = prompt(`Eres el jugador ${soyJugador.id}
+        Ingresa tu nombre:`);
+      console.log(idJugador);
+      setSoyJugador({nombre: nombre, id: idJugador});
+      socket.emit(`JugadorNombre`, soyJugador.nombre);
+    })
+    socket.on("RetadorAsignado", (mensaje) => {
+      alert(mensaje)
+
+    })
+  }, [])
+
 
   const repartirCartasPokemon = () => {
     const traerPokemones = async () => {
@@ -85,27 +74,30 @@ function HolaMundo() {
     console.log("Entra en la funcion de enfrentar")
     let puntosAux1 = puntosJugadorUno;
     let puntosAux2 = puntosJugadorDos;
-    if (cartasTablero[0].weight > cartasTablero[1].weight) {
-      alert("Gana la mano el jugador 1 con su pokémon " + cartasTablero[0].name);
-      console.log(cartasTablero[0]);
-      setPuntosJugadorUno(puntosJugadorUno + 10);
-      puntosAux1+= 10;
-    } else {
-      alert("Gana la mano el jugador 2 con su pokémon " + cartasTablero[1].name);
-      setPuntosJugadorDos(puntosJugadorDos + 10);
-      puntosAux2+= 10
-    }
-
-    if (cartasJugadorUno.length === 0)   {
-      if(puntosAux1 > puntosAux2) {
-        alert("Gana el jugador 1 con un total de "+ puntosAux1);
-        setPuntosJugadorUno(0);
+    setTimeout(() => {
+      if (cartasTablero[0].weight > cartasTablero[1].weight) {
+        alert("Gana la mano el jugador 1 con su pokémon " + cartasTablero[0].name);
+        console.log(cartasTablero[0]);
+        setPuntosJugadorUno(puntosJugadorUno + 10);
+        puntosAux1+= 10;
       } else {
-        alert("Gana el jugador 2 con un total de "+ puntosAux2);
-        setPuntosJugadorDos(0);
+        alert("Gana la mano el jugador 2 con su pokémon " + cartasTablero[1].name);
+        setPuntosJugadorDos(puntosJugadorDos + 10);
+        puntosAux2+= 10
       }
-    }
-    setCartasTablero([]);
+  
+      if (cartasJugadorUno.length === 0)   {
+        if(puntosAux1 > puntosAux2) {
+          alert("Gana el jugador 1 con un total de "+ puntosAux1);
+          setPuntosJugadorUno(0);
+        } else {
+          alert("Gana el jugador 2 con un total de "+ puntosAux2);
+          setPuntosJugadorDos(0);
+        }
+      }
+      setCartasTablero([]);
+    }, 1000);
+
   };
 
   const jugarCarta = (unJugador, unaCartaPokemon) => {
@@ -144,54 +136,21 @@ function HolaMundo() {
   };
   return (
     <div id="main">
-      <div className="flex-container main">
-        <main className="flex">
-          <button onClick={repartirCartasPokemon}>
+      <p>Sos el jugador {}</p>
+      <button onClick={repartirCartasPokemon}>
             Repartir Cartas Pokemon
           </button>
-
+      <div className="flex-container main">
+        <main className="flex">
           <div
             style={{
               border: "1px solid red",
-              width: "100%",
+              width: "15%",
               display: "flex",
               gap: "1rem",
-            }}
-          >
-            <h3>Cartas Jugador 2</h3>
-            {cartasJugadorDos.map((pokemon, id) => {
-              return (
-                <CartaPokemon
-                  pokemon={pokemon}
-                  key={`j2${id}`}
-                  jugarCarta={jugarCarta}
-                  jugador={`Jugador2`}
-                />
-              );
-            })}
-          </div>
-
-          <div
-            style={{
-              height: "300px",
-              border: "1px solid black",
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-            }}
-          >
-            <h3>Tablero de juego</h3>
-            {cartasTablero.map((pokemon, id) => {
-              return <CartaPokemon pokemon={pokemon} key={`t${id}`} />;
-            })}
-          </div>
-
-          <div
-            style={{
-              border: "1px solid grey",
-              width: "100%",
-              display: "flex",
-              gap: "1rem",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center"
             }}
           >
             <h3>Cartas Jugador 1</h3>
@@ -199,9 +158,54 @@ function HolaMundo() {
               return (
                 <CartaPokemon
                   pokemon={pokemon}
-                  key={`j1${id}`}
+                  key={`j2${id}`}
                   jugarCarta={jugarCarta}
                   jugador={`Jugador1`}
+                />
+              );
+            })}
+          </div>
+
+          <div style={{
+                height: "300px",
+                border: "1px solid black",
+                width: "60%",
+                height: "auto"}}>
+            <h3>Tablero de juego</h3>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between"
+                
+              }}
+            >
+              
+              {cartasTablero.map((pokemon, id) => {
+                return <CartaPokemon pokemon={pokemon} key={`t${id}`} />;
+              })}
+            </div>
+          </div>
+          <div
+            style={{
+              border: "1px solid grey",
+              width: "15%",
+              display: "flex",
+              gap: "1rem",
+              flexDirection: "column",
+              justifyContent: "right",
+              alignItems: "center"
+            }}
+          >
+            <h3>Cartas Jugador 2</h3>
+            {cartasJugadorDos.map((pokemon, id) => {
+              return (
+                <CartaPokemon
+                  pokemon={pokemon}
+                  key={`j1${id}`}
+                  jugarCarta={jugarCarta}
+                  jugador={`Jugador2`}
                 />
               );
             })}
