@@ -3,7 +3,7 @@ import { Ficha } from "../Ficha/Ficha";
 import { CartaPokemon } from "../CartaPokemon/CartaPokemon";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import io from "socket.io-client"
+import io from "socket.io-client";
 function HolaMundo() {
   const [misAnimales, setMisAnimales] = useState();
   const [cartasJugadorUno, setcartasJugadorUno] = useState([]);
@@ -14,25 +14,39 @@ function HolaMundo() {
   const [puntosJugadorDos, setPuntosJugadorDos] = useState(0);
   const [soyJugador, setSoyJugador] = useState({
     nombre: "",
-    id: 1
-  })
-  const socket = io("http://localhost:5000/");
+    id: 0,
+  });
+
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    console.log("Entro al useeffecct")
-    socket.on("asignaJugador", (idJugador) => {
-      const nombre = prompt(`Eres el jugador ${soyJugador.id}
-        Ingresa tu nombre:`);
-      console.log(idJugador);
-      setSoyJugador({nombre: nombre, id: idJugador});
-      socket.emit(`JugadorNombre`, soyJugador.nombre);
-    })
-    socket.on("RetadorAsignado", (mensaje) => {
-      alert(mensaje)
+    console.log("entra en el primer useeffect")
+    const s = io("http://localhost:5000/");
+    asignarSocket(s)   
+  }, [setSocket]);
 
-    })
-  }, [])
-
+  const asignarSocket = (s) => {
+    console.log("Asigna socket");
+    setSocket(s);
+    console.log("Entro al useeffecct");
+    s.on("asignaJugador", (idJugador) => {
+      if (soyJugador.nombre == "") {
+        const nombre = prompt(
+          `Eres el jugador ${idJugador} Ingresa tu nombre:`
+        );
+        setSoyJugador({ nombre: nombre, id: idJugador });
+        console.log("setea nombre nuevo de jugador" + idJugadyor);
+        s.emit(`JugadorNombre`, nombre);
+      } else {
+        alert("El jugador ya tiene nombre, esperando contrincante");
+      }
+    });
+    s.on("RetadorAsignado", (mensaje) => {
+      console.log(JSON.stringify(mensaje))
+      alert(mensaje);
+    });
+    return () => s.disconnect();
+  }
 
   const repartirCartasPokemon = () => {
     const traerPokemones = async () => {
@@ -68,41 +82,44 @@ function HolaMundo() {
       enfrentarCartas();
       setTurno("Jugador1");
     }
-  }, [turno])
+  }, [turno]);
 
   const enfrentarCartas = async () => {
-    console.log("Entra en la funcion de enfrentar")
+    console.log("Entra en la funcion de enfrentar");
     let puntosAux1 = puntosJugadorUno;
     let puntosAux2 = puntosJugadorDos;
     setTimeout(() => {
       if (cartasTablero[0].weight > cartasTablero[1].weight) {
-        alert("Gana la mano el jugador 1 con su pokémon " + cartasTablero[0].name);
+        alert(
+          "Gana la mano el jugador 1 con su pokémon " + cartasTablero[0].name
+        );
         console.log(cartasTablero[0]);
         setPuntosJugadorUno(puntosJugadorUno + 10);
-        puntosAux1+= 10;
+        puntosAux1 += 10;
       } else {
-        alert("Gana la mano el jugador 2 con su pokémon " + cartasTablero[1].name);
+        alert(
+          "Gana la mano el jugador 2 con su pokémon " + cartasTablero[1].name
+        );
         setPuntosJugadorDos(puntosJugadorDos + 10);
-        puntosAux2+= 10
+        puntosAux2 += 10;
       }
-  
-      if (cartasJugadorUno.length === 0)   {
-        if(puntosAux1 > puntosAux2) {
-          alert("Gana el jugador 1 con un total de "+ puntosAux1);
+
+      if (cartasJugadorUno.length === 0) {
+        if (puntosAux1 > puntosAux2) {
+          alert("Gana el jugador 1 con un total de " + puntosAux1);
           setPuntosJugadorUno(0);
         } else {
-          alert("Gana el jugador 2 con un total de "+ puntosAux2);
+          alert("Gana el jugador 2 con un total de " + puntosAux2);
           setPuntosJugadorDos(0);
         }
       }
       setCartasTablero([]);
     }, 1000);
-
   };
 
   const jugarCarta = (unJugador, unaCartaPokemon) => {
     if (turno === unJugador) {
-      console.log(unJugador +" jugó la carta " + unaCartaPokemon.id);
+      console.log(unJugador + " jugó la carta " + unaCartaPokemon.id);
       if (
         !cartasTablero.includes(unaCartaPokemon) &&
         cartasTablero.length < 2 // length 2
@@ -112,20 +129,24 @@ function HolaMundo() {
         cartasTableroAux.push(unaCartaPokemon);
         setCartasTablero([...cartasTableroAux]);
         if (turno === "Jugador1") {
-          let cartasJugadorUnoAux = [...cartasJugadorUno]; 
-          let index = cartasJugadorUnoAux.findIndex((pokemon) => pokemon.id === unaCartaPokemon.id);
+          let cartasJugadorUnoAux = [...cartasJugadorUno];
+          let index = cartasJugadorUnoAux.findIndex(
+            (pokemon) => pokemon.id === unaCartaPokemon.id
+          );
           cartasJugadorUnoAux.splice(index, 1);
           setcartasJugadorUno([...cartasJugadorUnoAux]);
         } else if (turno === "Jugador2") {
-          let cartasJugadorDosAux = [...cartasJugadorDos]; 
-          let index = cartasJugadorDosAux.findIndex((pokemon) => pokemon.id === unaCartaPokemon.id);
+          let cartasJugadorDosAux = [...cartasJugadorDos];
+          let index = cartasJugadorDosAux.findIndex(
+            (pokemon) => pokemon.id === unaCartaPokemon.id
+          );
           cartasJugadorDosAux.splice(index, 1);
           setCartasJugadorDos([...cartasJugadorDosAux]);
         }
-        if (cartasTableroAux.length === 2) { 
-          setTurno("EnfrentarCartas")
+        if (cartasTableroAux.length === 2) {
+          setTurno("EnfrentarCartas");
         } else {
-          if(turno === "Jugador1") setTurno("Jugador2");
+          if (turno === "Jugador1") setTurno("Jugador2");
         }
       } else {
         console.log("Carta ya jugada");
@@ -137,9 +158,7 @@ function HolaMundo() {
   return (
     <div id="main">
       <p>Sos el jugador {}</p>
-      <button onClick={repartirCartasPokemon}>
-            Repartir Cartas Pokemon
-          </button>
+      <button onClick={repartirCartasPokemon}>Repartir Cartas Pokemon</button>
       <div className="flex-container main">
         <main className="flex">
           <div
@@ -150,7 +169,7 @@ function HolaMundo() {
               gap: "1rem",
               flexDirection: "column",
               justifyContent: "center",
-              alignItems: "center"
+              alignItems: "center",
             }}
           >
             <h3>Cartas Jugador 1</h3>
@@ -166,22 +185,23 @@ function HolaMundo() {
             })}
           </div>
 
-          <div style={{
-                height: "300px",
-                border: "1px solid black",
-                width: "60%",
-                height: "auto"}}>
+          <div
+            style={{
+              height: "300px",
+              border: "1px solid black",
+              width: "60%",
+              height: "auto",
+            }}
+          >
             <h3>Tablero de juego</h3>
             <div
               style={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "space-between"
-                
+                justifyContent: "space-between",
               }}
             >
-              
               {cartasTablero.map((pokemon, id) => {
                 return <CartaPokemon pokemon={pokemon} key={`t${id}`} />;
               })}
@@ -195,7 +215,7 @@ function HolaMundo() {
               gap: "1rem",
               flexDirection: "column",
               justifyContent: "right",
-              alignItems: "center"
+              alignItems: "center",
             }}
           >
             <h3>Cartas Jugador 2</h3>
